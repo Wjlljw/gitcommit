@@ -1,0 +1,36 @@
+{
+  "slides": [
+    {
+      "slide_index": 1,
+      "items": [
+        {
+          "type": "text",
+          "text": "Making\nConnections In\nInformational\nTexts"
+        },
+        {
+          "type": "text",
+          "text": "through language organization\nand information links"
+        }
+      ]
+    },
+    {
+      "slide_index": 2,
+      "items": [
+        {
+          "type": "text",
+          "text": "Making sense of sentences"
+        },
+        {
+          "type": "text",
+          "text": "Understanding how a writer organizes language and links information in a paragraph or essay, helps us determine the purpose and key ideas of what we are reading."
+        }
+      ]
+    }
+  ],
+  "strings": [
+    "Making\nConnections In\nInformational\nTexts",
+    "through language organization\nand information links",
+    "Making sense of sentences",
+    "Understanding how a writer organizes language and links information in a paragraph or essay, helps us determine the purpose and key ideas of what we are reading."
+  ]
+}
