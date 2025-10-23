@@ -49,22 +49,164 @@ def translate_presentation(input_path: Path, output_path: Path) -> None:
                 
             # Translate text frames
             if hasattr(shape, 'has_text_frame') and shape.has_text_frame:
-                text = shape.text_frame.text
-                if text.strip():
-                    # Clear existing paragraphs
-                    while len(shape.text_frame.paragraphs) > 1:
-                        p = shape.text_frame.paragraphs[-1]
+                text_frame = shape.text_frame
+                if text_frame.text.strip():
+                    # Process each paragraph
+                    original_paragraphs = []
+                    for p in text_frame.paragraphs:
+                        # Store paragraph level properties
+                        p_data = {
+                            'alignment': p.alignment,
+                            'level': p.level,
+                            'line_spacing': p.line_spacing,
+                            'space_before': p.space_before,
+                            'space_after': p.space_after,
+                            'runs': []
+                        }
+                        
+                        # Store each run's properties
+                        for run in p.runs:
+                            run_data = {
+                                'text': run.text,
+                                'font': {
+                                    'name': run.font.name,
+                                    'size': run.font.size,
+                                    'bold': run.font.bold,
+                                    'italic': run.font.italic,
+                                    'underline': run.font.underline,
+                                    'color_rgb': run.font.color.rgb if run.font.color else None
+                                }
+                            }
+                            p_data['runs'].append(run_data)
+                        
+                        original_paragraphs.append(p_data)
+                    
+                    # Clear existing paragraphs except the first one
+                    while len(text_frame.paragraphs) > 1:
+                        p = text_frame.paragraphs[-1]
                         p._p.getparent().remove(p._p)
                     
-                    # Set translated text
-                    shape.text_frame.text = translate_text(text)
+                    # Recreate paragraphs with preserved formatting
+                    for i, p_data in enumerate(original_paragraphs):
+                        if i == 0:
+                            p = text_frame.paragraphs[0]
+                        else:
+                            p = text_frame.add_paragraph()
+                        
+                        # Restore paragraph level properties
+                        p.alignment = p_data['alignment']
+                        p.level = p_data['level']
+                        if p_data['line_spacing']:
+                            p.line_spacing = p_data['line_spacing']
+                        if p_data['space_before']:
+                            p.space_before = p_data['space_before']
+                        if p_data['space_after']:
+                            p.space_after = p_data['space_after']
+                        
+                        # Clear any existing runs
+                        for idx in range(len(p.runs)-1, -1, -1):
+                            p._p.remove(p.runs[idx]._r)
+                        
+                        # Add runs with translated text and preserved formatting
+                        for run_data in p_data['runs']:
+                            translated_text = translate_text(run_data['text'])
+                            run = p.add_run()
+                            run.text = translated_text
+                            
+                            # Restore font properties
+                            if run_data['font']['name']:
+                                run.font.name = run_data['font']['name']
+                            if run_data['font']['size']:
+                                run.font.size = run_data['font']['size']
+                            if run_data['font']['bold']:
+                                run.font.bold = run_data['font']['bold']
+                            if run_data['font']['italic']:
+                                run.font.italic = run_data['font']['italic']
+                            if run_data['font']['underline']:
+                                run.font.underline = run_data['font']['underline']
+                            if run_data['font']['color_rgb']:
+                                run.font.color.rgb = run_data['font']['color_rgb']
             
             # Translate tables
             if hasattr(shape, 'has_table') and shape.has_table:
                 for row in shape.table.rows:
                     for cell in row.cells:
                         if cell.text.strip():
-                            cell.text = translate_text(cell.text)
+                            text_frame = cell.text_frame
+                            
+                            # Store paragraph and run properties
+                            original_paragraphs = []
+                            for p in text_frame.paragraphs:
+                                p_data = {
+                                    'alignment': p.alignment,
+                                    'level': p.level,
+                                    'line_spacing': p.line_spacing,
+                                    'space_before': p.space_before,
+                                    'space_after': p.space_after,
+                                    'runs': []
+                                }
+                                
+                                for run in p.runs:
+                                    run_data = {
+                                        'text': run.text,
+                                        'font': {
+                                            'name': run.font.name,
+                                            'size': run.font.size,
+                                            'bold': run.font.bold,
+                                            'italic': run.font.italic,
+                                            'underline': run.font.underline,
+                                            'color_rgb': run.font.color.rgb if run.font.color else None
+                                        }
+                                    }
+                                    p_data['runs'].append(run_data)
+                                
+                                original_paragraphs.append(p_data)
+                            
+                            # Clear existing paragraphs except first
+                            while len(text_frame.paragraphs) > 1:
+                                p = text_frame.paragraphs[-1]
+                                p._p.getparent().remove(p._p)
+                            
+                            # Recreate paragraphs with preserved formatting
+                            for i, p_data in enumerate(original_paragraphs):
+                                if i == 0:
+                                    p = text_frame.paragraphs[0]
+                                else:
+                                    p = text_frame.add_paragraph()
+                                
+                                # Restore paragraph properties
+                                p.alignment = p_data['alignment']
+                                p.level = p_data['level']
+                                if p_data['line_spacing']:
+                                    p.line_spacing = p_data['line_spacing']
+                                if p_data['space_before']:
+                                    p.space_before = p_data['space_before']
+                                if p_data['space_after']:
+                                    p.space_after = p_data['space_after']
+                                
+                                # Clear existing runs
+                                for idx in range(len(p.runs)-1, -1, -1):
+                                    p._p.remove(p.runs[idx]._r)
+                                
+                                # Add runs with translated text and preserved formatting
+                                for run_data in p_data['runs']:
+                                    translated_text = translate_text(run_data['text'])
+                                    run = p.add_run()
+                                    run.text = translated_text
+                                    
+                                    # Restore font properties
+                                    if run_data['font']['name']:
+                                        run.font.name = run_data['font']['name']
+                                    if run_data['font']['size']:
+                                        run.font.size = run_data['font']['size']
+                                    if run_data['font']['bold']:
+                                        run.font.bold = run_data['font']['bold']
+                                    if run_data['font']['italic']:
+                                        run.font.italic = run_data['font']['italic']
+                                    if run_data['font']['underline']:
+                                        run.font.underline = run_data['font']['underline']
+                                    if run_data['font']['color_rgb']:
+                                        run.font.color.rgb = run_data['font']['color_rgb']
         
         # Translate notes if they exist
         if slide.has_notes_slide:
